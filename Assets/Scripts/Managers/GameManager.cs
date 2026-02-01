@@ -5,99 +5,162 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance;
 
     [Header("Settings")]
-    public Building[] buildingPrefabs; // [0]:Belt, [1]:Source, [2]:Sink, [3]:Smelter
+    public Building[] buildingPrefabs; // [0]:Belt, [1] inserter, [2]:Source, [3]:Sink, [4]:Smelter
+    public ItemData testItemToProduce; // í…ŒìŠ¤íŠ¸ìš© ì•„ì´í…œ (Sourceì—ì„œ ìƒì„±í•  ì•„ì´í…œ)
+    public RecipeData testRecipe; // ì´ˆê¸° í…ŒìŠ¤íŠ¸ìš© ë ˆì‹œí”¼
+    public RecipeData[] testRecipes; // ëŸ°íƒ€ì„ êµì²´ìš© ë ˆì‹œí”¼ ëª©ë¡
 
     [Header("Game State")]
-    public int currentBuildingIndex = 0; // ÇöÀç ¼±ÅÃµÈ °Ç¹°
+    public int currentBuildingIndex = 0; // í˜„ì¬ ì„ íƒëœ ê±´ë¬¼
     public int score = 0;
+    private Smelter trackedSmelter; // í…ŒìŠ¤íŠ¸ìš©ìœ¼ë¡œ ìƒì„±ëœ Smelter ì°¸ì¡°
 
     private void Awake()
     {
-        // ½Ì±ÛÅæ ÆĞÅÏ
+        // ì‹±ê¸€í†¤ íŒ¨í„´
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
     }
 
     private void Start()
     {
-        // °ÔÀÓ ½ÃÀÛ ½Ã ÀÚµ¿À¸·Î Å×½ºÆ® °øÀåÀ» Áş½À´Ï´Ù.
+        // ê²Œì„ ì‹œì‘ ì‹œ ìë™ìœ¼ë¡œ í…ŒìŠ¤íŠ¸ ê³µì¥ì„ ì§“ìŠµë‹ˆë‹¤.
         GenerateTestLayout();
     }
 
     private void Update()
     {
-        // °ÔÀÓ µµÁß 'T' Å°¸¦ ´©¸£¸é Å×½ºÆ® ¸ÊÀ» ´Ù½Ã ½ÃµµÇÕ´Ï´Ù.
+        // ê²Œì„ ë„ì¤‘ 'T' í‚¤ë¥¼ ëˆ„ë¥´ë©´ í…ŒìŠ¤íŠ¸ ë§µì„ ë‹¤ì‹œ ì‹œë„í•©ë‹ˆë‹¤.
         if (Input.GetKeyDown(KeyCode.T))
         {
             GenerateTestLayout();
         }
+
+        // 'R' í‚¤ë¥¼ ëˆ„ë¥´ë©´ Smelterì˜ ë ˆì‹œí”¼ë¥¼ ë‹¤ìŒ ê²ƒìœ¼ë¡œ ë³€ê²½í•©ë‹ˆë‹¤.
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            SwapSmelterRecipe();
+        }
     }
 
-    // ¡Ú [¼öÁ¤µÊ] ²ªÀÎ °æ·Î(Snake Path) Å×½ºÆ® ·¹ÀÌ¾Æ¿ô »ı¼º
-    public void GenerateTestLayout()
+    private void SwapSmelterRecipe()
     {
-        // ÇÁ¸®ÆÕ È®ÀÎ
-        if (buildingPrefabs == null || buildingPrefabs.Length < 4)
+        if (trackedSmelter == null || testRecipes == null || testRecipes.Length == 0)
         {
-            Debug.LogError("Building Prefabs¿¡ ÃÖ¼Ò 4°³ÀÇ °Ç¹°ÀÌ µî·ÏµÇ¾î¾ß ÇÕ´Ï´Ù. (0:Belt, 1:Source, 2:Sink, 3:Smelter)");
+            Debug.LogWarning("êµì²´í•  Smelterê°€ ì—†ê±°ë‚˜ ë ˆì‹œí”¼ ëª©ë¡ì´ ë¹„ì–´ìˆìŠµë‹ˆë‹¤.");
             return;
         }
 
-        // ÀÎµ¦½º ¸ÅÇÎ: [0]:Belt, [1]:Source, [2]:Sink, [3]:Smelter
+        // í˜„ì¬ ë ˆì‹œí”¼ì˜ ì¸ë±ìŠ¤ë¥¼ ì°¾ìŠµë‹ˆë‹¤.
+        int currentIndex = -1;
+        for (int i = 0; i < testRecipes.Length; i++)
+        {
+            if (trackedSmelter.currentRecipe == testRecipes[i])
+            {
+                currentIndex = i;
+                break;
+            }
+        }
+
+        // ë‹¤ìŒ ì¸ë±ìŠ¤ë¡œ ì´ë™ (ìˆœí™˜)
+        int nextIndex = (currentIndex + 1) % testRecipes.Length;
+        RecipeData newRecipe = testRecipes[nextIndex];
+
+        // ë ˆì‹œí”¼ ë³€ê²½
+        trackedSmelter.currentRecipe = newRecipe;
+        
+        // ì¤‘ìš”: ë ˆì‹œí”¼ê°€ ë°”ë€Œë©´ ê¸°ì¡´ ì¬ë£Œê°€ ë§ì§€ ì•Šì•„ ë§‰í ìˆ˜ ìˆìœ¼ë¯€ë¡œ ì¸ë²¤í† ë¦¬ë¥¼ ì´ˆê¸°í™”í•´ì¤ë‹ˆë‹¤.
+        trackedSmelter.inputInventory.Clear();
+        trackedSmelter.outputInventory.Clear();
+        trackedSmelter.productionProgress = 0f;
+
+        Debug.Log($"Smelter ë ˆì‹œí”¼ ë³€ê²½ë¨: {newRecipe.name} (ì¸ë²¤í† ë¦¬ ì´ˆê¸°í™”ë¨)");
+    }
+
+    // â˜… [ìˆ˜ì •ë¨] Inserter í¬í•¨ í…ŒìŠ¤íŠ¸ ë ˆì´ì•„ì›ƒ ìƒì„±
+    public void GenerateTestLayout()
+    {
+        // í”„ë¦¬íŒ¹ í™•ì¸
+        if (buildingPrefabs == null || buildingPrefabs.Length < 5)
+        {
+            Debug.LogError("Building Prefabsì— ìµœì†Œ 5ê°œì˜ ê±´ë¬¼ì´ ë“±ë¡ë˜ì–´ì•¼ í•©ë‹ˆë‹¤. (0:Belt, 1:Inserter, 2:Source, 3:Sink, 4:Smelter)");
+            return;
+        }
+
+        // ì¸ë±ìŠ¤ ë§¤í•‘: [0]:Belt, [1]:Inserter, [2]:Source, [3]:Sink, [4]:Smelter
         int idxBelt = 0;
-        int idxSource = 1;
-        int idxSink = 2;
-        int idxSmelter = 3;
+        int idxInserter = 1;
+        int idxSource = 2;
+        int idxSink = 3;
+        int idxSmelter = 4;
 
         int startX = 20;
         int startY = 20;
+        int currentX = startX;
 
-        // 1. Source (ÀÔ·Â Ã¢°í) - À§Ä¡: (20, 20), ¹æÇâ: ¿À¸¥ÂÊ
-        PlaceTestBuilding(startX, startY, idxSource, Vector2Int.right);
+        // ë°°ì¹˜ ì‹œë‚˜ë¦¬ì˜¤: Source -> Inserter -> Belt (4ê°œ) -> Inserter -> Smelter -> Inserter -> Belt (4ê°œ) -> Inserter -> Sink
+        
+        // 1. Source (ì…ë ¥ ì°½ê³ )
+        Building sourceBuilding = PlaceTestBuilding(currentX, startY, idxSource, Vector2Int.right);
+        if (sourceBuilding is Source source)
+        {
+            source.itemToProduce = testItemToProduce;
+        }
+        currentX++;
 
-        // 2. Belt (¿À¸¥ÂÊ ÀÌµ¿) - À§Ä¡: (21, 20)
-        PlaceTestBuilding(startX + 1, startY, idxBelt, Vector2Int.right);
+        // 2. Inserter (Source -> Belt Start)
+        PlaceTestBuilding(currentX, startY, idxInserter, Vector2Int.right);
+        currentX++;
 
-        // 3. Belt (À§·Î ²ª±â!) - À§Ä¡: (22, 20), ¹æÇâ: À§(Up)
-        // ¾ÆÀÌÅÛÀÌ (21,20)¿¡¼­ µé¾î¿Í¼­ À§(22,21)·Î ³ª°©´Ï´Ù.
-        PlaceTestBuilding(startX + 2, startY, idxBelt, Vector2Int.up);
+        // 3. Belt 4ê°œ
+        for (int i = 0; i < 4; i++)
+        {
+            PlaceTestBuilding(currentX, startY, idxBelt, Vector2Int.right);
+            currentX++;
+        }
 
-        // 4. Belt (À§·Î ÀÌµ¿) - À§Ä¡: (22, 21), ¹æÇâ: À§(Up)
-        PlaceTestBuilding(startX + 2, startY + 1, idxBelt, Vector2Int.up);
+        // 4. Inserter (Belt End -> Smelter)
+        PlaceTestBuilding(currentX, startY, idxInserter, Vector2Int.right);
+        currentX++;
 
-        // 5. Belt (¿À¸¥ÂÊÀ¸·Î ´Ù½Ã ²ª±â!) - À§Ä¡: (22, 22), ¹æÇâ: ¿À¸¥ÂÊ(Right)
-        // ¾ÆÀÌÅÛÀÌ ¾Æ·¡(22,21)¿¡¼­ µé¾î¿Í¼­ ¿À¸¥ÂÊ(23,22)À¸·Î ³ª°©´Ï´Ù.
-        PlaceTestBuilding(startX + 2, startY + 2, idxBelt, Vector2Int.right);
+        // 5. Smelter (ê°€ê³µ)
+        Building smelterBuilding = PlaceTestBuilding(currentX, startY, idxSmelter, Vector2Int.right);
+        if (smelterBuilding is Smelter smelter)
+        {
+            smelter.currentRecipe = testRecipe;
+            trackedSmelter = smelter; // ì°¸ì¡° ì €ì¥
+        }
+        currentX++;
 
-        // 6. Smelter (Á¦·Ã±â) - À§Ä¡: (23, 22), ¹æÇâ: ¿À¸¥ÂÊ
-        PlaceTestBuilding(startX + 3, startY + 2, idxSmelter, Vector2Int.right);
+        // 6. Inserter (Smelter -> Belt Start)
+        PlaceTestBuilding(currentX, startY, idxInserter, Vector2Int.right);
+        currentX++;
 
-        // 7. Belt (¿À¸¥ÂÊ ÀÌµ¿) - À§Ä¡: (24, 22)
-        PlaceTestBuilding(startX + 4, startY + 2, idxBelt, Vector2Int.right);
+        // 7. Belt 4ê°œ (ìƒì‚°ë¬¼ ì´ë™)
+        for (int i = 0; i < 4; i++)
+        {
+            PlaceTestBuilding(currentX, startY, idxBelt, Vector2Int.right);
+            currentX++;
+        }
 
-        // 8. Belt (¾Æ·¡·Î ²ª±â!) - À§Ä¡: (25, 22), ¹æÇâ: ¾Æ·¡(Down)
-        PlaceTestBuilding(startX + 5, startY + 2, idxBelt, Vector2Int.down);
+        // 8. Inserter (Belt End -> Sink)
+        PlaceTestBuilding(currentX, startY, idxInserter, Vector2Int.right);
+        currentX++;
 
-        // 9. Belt (¾Æ·¡·Î ÀÌµ¿) - À§Ä¡: (25, 21), ¹æÇâ: ¾Æ·¡(Down)
-        PlaceTestBuilding(startX + 5, startY + 1, idxBelt, Vector2Int.down);
+        // 9. Sink (ì†Œëª¨)
+        PlaceTestBuilding(currentX, startY, idxSink, Vector2Int.right);
 
-        // 10. Belt (¿À¸¥ÂÊÀ¸·Î ¸¶Áö¸· ²ª±â) - À§Ä¡: (25, 20), ¹æÇâ: ¿À¸¥ÂÊ(Right)
-        PlaceTestBuilding(startX + 5, startY, idxBelt, Vector2Int.right);
-
-        // 11. Sink (Ãâ°í Ã¢°í) - À§Ä¡: (26, 20)
-        PlaceTestBuilding(startX + 6, startY, idxSink, Vector2Int.right);
-
-        Debug.Log("SÀÚ ±¼°î Å×½ºÆ® °øÀå ¹èÄ¡ ¿Ï·á! (½ÃÀÛÀ§Ä¡: 20, 20)");
+        Debug.Log("í™•ì¥ëœ í…ŒìŠ¤íŠ¸ ê³µì¥ ë°°ì¹˜ ì™„ë£Œ! (Source -> Inserter -> Belt(4) -> Inserter -> Smelter -> Inserter -> Belt(4) -> Inserter -> Sink)");
     }
 
-    // GridManager¸¦ È£ÃâÇÏ¿© °Ç¹°À» Áş´Â ³»ºÎ ÇÔ¼ö
-    private void PlaceTestBuilding(int x, int y, int prefabIndex, Vector2Int dir)
+    // GridManagerë¥¼ í˜¸ì¶œí•˜ì—¬ ê±´ë¬¼ì„ ì§“ëŠ” ë‚´ë¶€ í•¨ìˆ˜
+    private Building PlaceTestBuilding(int x, int y, int prefabIndex, Vector2Int dir)
     {
         Building prefab = buildingPrefabs[prefabIndex];
-        GridManager.Instance.PlaceBuilding(x, y, prefab, dir);
+        return GridManager.Instance.PlaceBuilding(x, y, prefab, dir);
     }
 
-    // °Ç¹° ¼±ÅÃ º¯°æ
+    // ê±´ë¬¼ ì„ íƒ ë³€ê²½
     public void SetBuildingIndex(int index)
     {
         if (index >= 0 && index < buildingPrefabs.Length)
@@ -107,14 +170,14 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // ÇöÀç ¼±ÅÃµÈ ÇÁ¸®ÆÕ °¡Á®¿À±â
+    // í˜„ì¬ ì„ íƒëœ í”„ë¦¬íŒ¹ ê°€ì ¸ì˜¤ê¸°
     public Building GetCurrentBuildingPrefab()
     {
         if (buildingPrefabs == null || buildingPrefabs.Length == 0) return null;
         return buildingPrefabs[currentBuildingIndex];
     }
 
-    // Á¡¼ö Ãß°¡
+    // ì ìˆ˜ ì¶”ê°€
     public void AddScore(int amount)
     {
         score += amount;

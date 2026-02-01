@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -35,16 +36,44 @@ public abstract class Machine : Building, IItemReceiver, IItemSource
     {
         base.GetSaveData(data);
         data.recipeId = currentRecipe != null ? currentRecipe.id : null;
-        data.inputInventory = inputInventory.Select(s => new InventoryItemSaveData { id = s.item.id, count = s.count }).ToList();
-        data.outputInventory = outputInventory.Select(s => new InventoryItemSaveData { id = s.item.id, count = s.count }).ToList();
+        
+        if (inputInventory != null)
+        {
+            data.inputInventory = inputInventory
+                .Where(s => s.item != null)
+                .Select(s => new InventoryItemSaveData { id = s.item.id, count = s.count })
+                .ToList();
+        }
+        
+        if (outputInventory != null)
+        {
+            data.outputInventory = outputInventory
+                .Where(s => s.item != null)
+                .Select(s => new InventoryItemSaveData { id = s.item.id, count = s.count })
+                .ToList();
+        }
     }
 
     public override void LoadSaveData(BuildingSaveData data)
     {
         base.LoadSaveData(data);
         currentRecipe = !string.IsNullOrEmpty(data.recipeId) ? SaveManager.Instance.GetRecipeDataById(data.recipeId) : null;
-        inputInventory = data.inputInventory.Select(s => new ItemStack { item = SaveManager.Instance.GetItemDataById(s.id), count = s.count }).ToList();
-        outputInventory = data.outputInventory.Select(s => new ItemStack { item = SaveManager.Instance.GetItemDataById(s.id), count = s.count }).ToList();
+        
+        if (data.inputInventory != null)
+        {
+            inputInventory = data.inputInventory
+                .Select(s => new ItemStack { item = SaveManager.Instance.GetItemDataById(s.id), count = s.count })
+                .Where(s => s.item != null)
+                .ToList();
+        }
+        
+        if (data.outputInventory != null)
+        {
+            outputInventory = data.outputInventory
+                .Select(s => new ItemStack { item = SaveManager.Instance.GetItemDataById(s.id), count = s.count })
+                .Where(s => s.item != null)
+                .ToList();
+        }
     }
 
     private bool CanProduce()

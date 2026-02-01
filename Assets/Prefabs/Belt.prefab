@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1313396724542882717}
   - component: {fileID: 1222377539034140753}
-  - component: {fileID: 8181326947430877828}
+  - component: {fileID: -4881480967448929804}
   m_Layer: 0
   m_Name: Belt
   m_TagString: Untagged
@@ -83,7 +83,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: -5
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 7576011095104966051, guid: 184cfdccbef768e498140942867d9eb0, type: 3}
+  m_Sprite: {fileID: -6771482941915710753, guid: 184cfdccbef768e498140942867d9eb0, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -93,7 +93,7 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
---- !u!114 &8181326947430877828
+--- !u!114 &-4881480967448929804
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -102,14 +102,17 @@ MonoBehaviour:
   m_GameObject: {fileID: 2495484915201959287}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c6c1dd3de399759449e6937ce2c72689, type: 3}
+  m_Script: {fileID: 11500000, guid: 3f4b3718103c5b842bb9dd37d7d561d8, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ConveyorBelt
-  type: 0
+  m_EditorClassIdentifier: Assembly-CSharp::Belt
   gridPosition: {x: 0, y: 0}
-  direction: {x: 1, y: 0}
-  currentItem: {fileID: 0}
-  itemVisual: {fileID: 4926873832791757862}
+  size: {x: 1, y: 1}
+  direction: 0
+  speed: 1
+  spriteRenderer: {fileID: 0}
+  beltSprites:
+  - {fileID: -6771482941915710753, guid: 184cfdccbef768e498140942867d9eb0, type: 3}
+  - {fileID: -8292416050315230980, guid: ee818f57a40d76d418b8d73bfc8c875b, type: 3}
 --- !u!1 &4926873832791757862
 GameObject:
   m_ObjectHideFlags: 0

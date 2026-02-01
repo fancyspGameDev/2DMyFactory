@@ -1,13 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[System.Serializable]
-public struct ItemStack
-{
-    public ItemData item;
-    public int count;
-}
-
 [CreateAssetMenu(fileName = "Recipe_", menuName = "Data/Recipe")]
 public class RecipeData : ScriptableObject
 {

@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3911987797325315273}
   - component: {fileID: 3320915359345787669}
-  - component: {fileID: 4989337662869591793}
+  - component: {fileID: 1281059223883912427}
   m_Layer: 0
   m_Name: Smelter
   m_TagString: Untagged
@@ -92,7 +92,7 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
---- !u!114 &4989337662869591793
+--- !u!114 &1281059223883912427
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -101,10 +101,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 3177968981710561092}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5d80f5b329d440f49a28f45161878877, type: 3}
+  m_Script: {fileID: 11500000, guid: 2780e2ebea1b524439a5febc8a1d6cb2, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Machine
-  type: 1
+  m_EditorClassIdentifier: Assembly-CSharp::Smelter
   gridPosition: {x: 0, y: 0}
-  direction: {x: 1, y: 0}
-  recipe: {fileID: 11400000, guid: 6512e8babba4a89418af5680277ce9e3, type: 2}
+  size: {x: 1, y: 1}
+  direction: 0
+  currentRecipe: {fileID: 0}
+  productionProgress: 0
+  inputInventory: []
+  outputInventory: []

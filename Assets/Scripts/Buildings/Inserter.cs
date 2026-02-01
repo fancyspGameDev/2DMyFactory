@@ -47,31 +47,30 @@ public class Inserter : Building
     private void Update()
     {
         // Interpolate arm rotation
-        // We estimate progress based on Time.deltaTime relative to the Tick rate, 
-        // but simple Lerp towards targetRotation is safer and smoother.
-        // Rotation speed should be synced with logic speed.
-        
         if (arm != null)
         {
              // Smooth move towards target logic rotation
-             // Using a high speed for 'catch up' but limited by logic state changes would be ideal.
-             // For now, simple Slerp.
-             float step = Time.deltaTime * (1.0f / (ticksPerMove * 0.1f)); // normalized speed
-             arm.localRotation = Quaternion.RotateTowards(arm.localRotation, targetRotation, 360f * step * Time.deltaTime * 50f); 
-             // Actually, RotateTowards is degree step.
-             // Let's just use Slerp with a factor.
              arm.localRotation = Quaternion.Slerp(arm.localRotation, targetRotation, Time.deltaTime * 10f);
         }
 
         // Update item sprite position (it follows the handSlot)
-        if (heldItem.item != null && handItemRenderer != null)
+        if (handItemRenderer != null)
         {
-            handItemRenderer.sprite = heldItem.item.icon; // Assume ItemData has 'icon'
-            handItemRenderer.enabled = true;
-        }
-        else if (handItemRenderer != null)
-        {
-            handItemRenderer.enabled = false;
+            // Force hide if in MoveToPick state (returning empty)
+            if (currentState == InserterState.MoveToPick)
+            {
+                handItemRenderer.enabled = false;
+            }
+            else if (heldItem.item != null)
+            {
+                handItemRenderer.sprite = heldItem.item.icon;
+                handItemRenderer.enabled = true;
+            }
+            else
+            {
+                handItemRenderer.sprite = null;
+                handItemRenderer.enabled = false;
+            }
         }
     }
 
@@ -160,6 +159,11 @@ public class Inserter : Building
                     if (destinationInterface.TryReceiveItem(heldItem))
                     {
                         heldItem = default; // Clear item
+                        if (handItemRenderer != null)
+                        {
+                            handItemRenderer.sprite = null;
+                            handItemRenderer.enabled = false;
+                        }
                         // Success! Now go back to pick
                         currentState = InserterState.MoveToPick; 
                         stateTimer = 0;

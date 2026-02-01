@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4012531986823842405}
   - component: {fileID: 5784603850388910756}
-  - component: {fileID: 589630018019012130}
+  - component: {fileID: 180762921342231489}
   m_Layer: 0
   m_Name: Assembler
   m_TagString: Untagged
@@ -92,7 +92,7 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
---- !u!114 &589630018019012130
+--- !u!114 &180762921342231489
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -101,10 +101,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 7580316566967738505}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5d80f5b329d440f49a28f45161878877, type: 3}
+  m_Script: {fileID: 11500000, guid: 3ad824de45b2331448502716cc024699, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Machine
-  type: 0
+  m_EditorClassIdentifier: Assembly-CSharp::Assembler
   gridPosition: {x: 0, y: 0}
-  direction: {x: 1, y: 0}
-  recipe: {fileID: 0}
+  size: {x: 1, y: 1}
+  direction: 0
+  currentRecipe: {fileID: 0}
+  productionProgress: 0
+  inputInventory: []
+  outputInventory: []

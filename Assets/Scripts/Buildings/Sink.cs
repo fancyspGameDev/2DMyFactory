@@ -1,10 +1,5 @@
 using UnityEngine;
 
-public interface IItemReceiver
-{
-    bool TryReceiveItem(ItemStack item);
-}
-
 public class Sink : Building, IItemReceiver
 {
     // A sink can receive any item and simply destroys it.

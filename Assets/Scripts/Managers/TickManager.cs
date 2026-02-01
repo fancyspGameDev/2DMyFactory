@@ -24,6 +24,7 @@ public class TickManager : MonoBehaviour
 
     private void Update()
     {
+        // Visual Update (Frame-based) - Interpolation happens here in individual scripts
         timer += Time.deltaTime;
         if (timer >= tickInterval)
         {
@@ -34,6 +35,7 @@ public class TickManager : MonoBehaviour
 
     private void Tick()
     {
+        // Logic Update (Fixed Tick-based) - Data processing only
         // Get all active buildings from the GridManager and tick them.
         // Create a copy of the list to avoid collection modification errors if a building is removed during OnTick.
         List<Building> buildings = new List<Building>(GridManager.Instance.GetAllActiveBuildings());

@@ -1,21 +1,22 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class UIManager : MonoBehaviour
 {
     [Header("UI Elements")]
-    public Transform ghostObject; // 미리보기용 오브젝트 (Scene에 있는 빈 오브젝트 연결)
+    public Transform ghostObject; // Ghost Object for placement preview
     private SpriteRenderer ghostRenderer;
 
-    // 현재 건설하려는 건물의 회전 방향
+    // Current rotation direction
     private Vector2Int currentDirection = Vector2Int.right;
 
     private void Start()
     {
-        // 고스트 오브젝트에서 렌더러 가져오기
+        // Init Ghost
         if (ghostObject != null)
         {
             ghostRenderer = ghostObject.GetComponent<SpriteRenderer>();
-            // 반투명하게 설정 (알파값 0.5)
+            // Semi-transparent
             ghostRenderer.color = new Color(1f, 1f, 1f, 0.5f);
         }
     }
@@ -23,38 +24,60 @@ public class UIManager : MonoBehaviour
     void Update()
     {
         HandleInput();
-        UpdateGhost(); // 매 프레임 미리보기 갱신
+        UpdateGhost();
     }
 
     void HandleInput()
     {
+        // Prevent interaction if pointer is over UI
+        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+            return;
+
         Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         int x = Mathf.RoundToInt(mouseWorldPos.x);
         int y = Mathf.RoundToInt(mouseWorldPos.y);
 
-        // 1. 건설 (좌클릭)
+        // 1. Left Click (Place or Select)
         if (Input.GetMouseButtonDown(0))
         {
-            Building prefab = GameManager.Instance.GetCurrentBuildingPrefab();
-            if (prefab != null)
+            Building existingBuilding = GridManager.Instance.GetBuildingAt(new Vector2Int(x, y));
+            
+            if (existingBuilding != null)
             {
-                GridManager.Instance.PlaceBuilding(x, y, prefab, currentDirection);
+                // Interaction with existing building
+                if (existingBuilding is Smelter smelter)
+                {
+                    if (RecipeSelectUI.Instance != null)
+                    {
+                        RecipeSelectUI.Instance.Open(smelter);
+                    }
+                }
+                // Add other interactions here
+            }
+            else
+            {
+                // Place new building
+                Building prefab = GameManager.Instance.GetCurrentBuildingPrefab();
+                if (prefab != null)
+                {
+                    GridManager.Instance.PlaceBuilding(x, y, prefab, currentDirection);
+                }
             }
         }
 
-        // 2. 제거 (우클릭)
+        // 2. Right Click (Remove)
         if (Input.GetMouseButtonDown(1))
         {
             GridManager.Instance.RemoveBuilding(x, y);
         }
 
-        // 3. 회전 (R키)
+        // 3. Rotate (R Key)
         if (Input.GetKeyDown(KeyCode.R))
         {
             RotateDirection();
         }
 
-        // 4. 건물 선택 (숫자키) - 선택 시 바로 미리보기 갱신됨
+        // 4. Hotkeys for building selection
         if (Input.GetKeyDown(KeyCode.Alpha1)) GameManager.Instance.SetBuildingIndex(0);
         if (Input.GetKeyDown(KeyCode.Alpha2)) GameManager.Instance.SetBuildingIndex(1);
         if (Input.GetKeyDown(KeyCode.Alpha3)) GameManager.Instance.SetBuildingIndex(2);
@@ -67,24 +90,22 @@ public class UIManager : MonoBehaviour
         currentDirection = new Vector2Int(currentDirection.y, -currentDirection.x);
     }
 
-    // ★ 핵심: 미리보기(Ghost) 위치 및 모양 업데이트
+    // Update Ghost Visuals
     private void UpdateGhost()
     {
         if (ghostObject == null || ghostRenderer == null) return;
 
-        // 1. 마우스 위치 계산 (Grid 스냅)
+        // 1. Position
         Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         int x = Mathf.RoundToInt(mousePos.x);
         int y = Mathf.RoundToInt(mousePos.y);
 
-        // 2. 위치 이동
         ghostObject.position = new Vector3(x, y, 0);
 
-        // 3. 현재 선택된 건물의 스프라이트 가져오기
+        // 2. Sprite
         Building currentPrefab = GameManager.Instance.GetCurrentBuildingPrefab();
         if (currentPrefab != null)
         {
-            // 프리팹 본체 혹은 자식에 있는 스프라이트 렌더러 찾기
             SpriteRenderer prefabRenderer = currentPrefab.GetComponentInChildren<SpriteRenderer>();
             if (prefabRenderer != null)
             {
@@ -92,7 +113,7 @@ public class UIManager : MonoBehaviour
             }
         }
 
-        // 4. 회전 적용
+        // 3. Rotation
         float rotZ = 0;
         if (currentDirection == Vector2Int.right) rotZ = 0;
         else if (currentDirection == Vector2Int.down) rotZ = -90;

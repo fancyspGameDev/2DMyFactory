@@ -29,20 +29,33 @@ public class CameraController : MonoBehaviour
 
     void Move()
     {
-        float h = Input.GetAxisRaw("Horizontal"); // A, D 또는 좌우 화살표
-        float v = Input.GetAxisRaw("Vertical");   // W, S 또는 상하 화살표
+        float h = Input.GetAxisRaw("Horizontal");
+        float v = Input.GetAxisRaw("Vertical");
 
-        // 이동 방향 계산
-        Vector3 direction = new Vector3(h, v, 0).normalized;
+        // [추가] 직접 키 입력을 통한 보강 (WSDF/WASD 모두 지원)
+        if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow)) v = 1;
+        if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow)) v = -1;
+        if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.F)) h = -1;
+        if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow)) h = 1;
 
-        // 현재 위치에 더하기
-        Vector3 newPos = transform.position + direction * moveSpeed * Time.deltaTime;
+        if (h != 0 || v != 0)
+        {
+            // 이동 방향 계산
+            Vector3 direction = new Vector3(h, v, 0).normalized;
 
-        // 맵 밖으로 나가지 않게 가두기 (Clamp)
-        newPos.x = Mathf.Clamp(newPos.x, minLimit.x, maxLimit.x);
-        newPos.y = Mathf.Clamp(newPos.y, minLimit.y, maxLimit.y);
+            // 현재 위치에 더하기
+            Vector3 newPos = transform.position + direction * moveSpeed * Time.deltaTime;
 
-        transform.position = newPos;
+            // 맵 밖으로 나가지 않게 가두기 (Clamp)
+            newPos.x = Mathf.Clamp(newPos.x, minLimit.x, maxLimit.x);
+            newPos.y = Mathf.Clamp(newPos.y, minLimit.y, maxLimit.y);
+
+            if (transform.position != newPos)
+            {
+                transform.position = newPos;
+                //Debug.Log($"Camera Moving: {transform.position}, Input: h={h}, v={v}");
+            }
+        }
     }
 
     void Zoom()

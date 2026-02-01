@@ -29,10 +29,35 @@ public class SaveManager : MonoBehaviour
         Instance = this;
         saveFilePath = Path.Combine(Application.persistentDataPath, "save.json");
         
-        // Initialize dictionaries for fast lookups
-        buildingPrefabDict = buildingPrefabs.ToDictionary(p => p.GetType().Name, p => p);
-        itemDict = itemDatabase.ToDictionary(i => i.id, i => i);
-        recipeDict = recipeDatabase.ToDictionary(r => r.id, r => r);
+        // Initialize dictionaries for fast lookups, handling potential duplicates in inspector lists
+        buildingPrefabDict = buildingPrefabs
+            .Where(p => p != null)
+            .GroupBy(p => p.GetType().Name)
+            .ToDictionary(g => g.Key, g => g.First());
+
+        itemDict = itemDatabase
+            .Where(i => i != null)
+            .GroupBy(i => i.id)
+            .ToDictionary(g => g.Key, g => g.First());
+
+        recipeDict = recipeDatabase
+            .Where(r => r != null)
+            .GroupBy(r => r.id)
+            .ToDictionary(g => g.Key, g => g.First());
+            
+        // Log warnings for duplicates to help cleanup
+        CheckForDuplicates(buildingPrefabs.Where(p => p != null).Select(p => p.GetType().Name), "Building Prefab");
+        CheckForDuplicates(itemDatabase.Where(i => i != null).Select(i => i.id.ToString()), "Item Data");
+        CheckForDuplicates(recipeDatabase.Where(r => r != null).Select(r => r.id), "Recipe Data");
+    }
+
+    private void CheckForDuplicates(IEnumerable<string> keys, string context)
+    {
+        var duplicates = keys.GroupBy(k => k).Where(g => g.Count() > 1).Select(g => g.Key);
+        foreach (var dup in duplicates)
+        {
+            Debug.LogWarning($"Duplicate {context} found for key: {dup}. Only the first one will be used.");
+        }
     }
 
     public void Save()

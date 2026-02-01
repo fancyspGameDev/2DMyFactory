@@ -8,6 +8,7 @@ public class GridManager : MonoBehaviour
     [Header("Grid Settings")]
     [SerializeField] private int width = 50;
     [SerializeField] private int height = 50;
+    [SerializeField] private GameObject floorPrefab;
 
     private Building[,] grid;
     private List<Building> activeBuildings;
@@ -31,6 +32,31 @@ public class GridManager : MonoBehaviour
         activeBuildings = new List<Building>();
     }
 
+    private void Start()
+    {
+        GenerateFloor();
+    }
+
+    private void GenerateFloor()
+    {
+        if (floorPrefab == null)
+        {
+            Debug.LogError("GridManager: floorPrefab is null! Cannot generate floor.");
+            return;
+        }
+
+        int count = 0;
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                Instantiate(floorPrefab, new Vector3(x, y, 0), Quaternion.identity, transform);
+                count++;
+            }
+        }
+        Debug.Log($"GridManager: Generated {count} floor tiles.");
+    }
+
     public bool TryPlaceBuilding(Building buildingPrefab, Vector2Int position)
     {
         if (!IsAreaAvailable(position, buildingPrefab.size))
@@ -46,12 +72,12 @@ public class GridManager : MonoBehaviour
     }
 
     // Overload for use by GameManager and UIManager with direction
-    public void PlaceBuilding(int x, int y, Building prefab, Vector2Int directionVector)
+    public Building PlaceBuilding(int x, int y, Building prefab, Vector2Int directionVector)
     {
         Vector2Int position = new Vector2Int(x, y);
         if (!IsAreaAvailable(position, prefab.size))
         {
-            return;
+            return null;
         }
 
         Building newBuilding = Instantiate(prefab, new Vector3(position.x, position.y, 0), Quaternion.identity);
@@ -63,6 +89,7 @@ public class GridManager : MonoBehaviour
         newBuilding.transform.rotation = Quaternion.Euler(0, 0, -90 * (int)dir);
 
         RegisterBuilding(newBuilding, position);
+        return newBuilding;
     }
 
     private void RegisterBuilding(Building newBuilding, Vector2Int position)
