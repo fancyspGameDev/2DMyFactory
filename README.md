@@ -54,13 +54,15 @@
 
 ## 3. 핵심 게임 로직 (Core Logic)
 
-### 3.1. 시간 및 이동 시스템 ([Update] Faster Tick)
+### 3.1. 시간 및 이동 시스템 ([Update] Faster Tick & Rate Limiting)
 
 - **Logic (OnTick)**
     
     - **주기**: **0.1초 (100ms)** (기존 0.2초에서 단축하여 부드러운 시뮬레이션 구현).
         
     - **역할**: 아이템의 논리적 위치 변경(`progress` 증가), 기계 생산 게이지 증가, 투입기 FSM 상태 변경.
+    
+    - **[New] 공급 속도 제한 (Source Rate Limiting)**: `Source` 건물은 `spawnInterval`(기본 1.0초)에 따라 아이템을 생성하며, 무분별한 아이템 쏟아짐을 방지함.
         
 - **Render (Update)**
     
@@ -114,6 +116,12 @@ JSON
 ### 4.1. 컨베이어 벨트 (Conveyor Belt)
 
 - **역할**: 수동적 운송. 아이템을 스스로 밀지 않음(벨트 로직에 의해 아이템 좌표가 갱신됨).
+
+- **[New] 아이템 적재 및 충돌 (Stacking & Collision)**:
+    
+    - **아이템 간격 유지**: 벨트 위 아이템은 앞선 아이템과 일정 간격(`itemSize`: 0.35f)을 유지하며, 앞 아이템이 멈추면 뒤 아이템도 차곡차곡 쌓임.
+    
+    - **물류 정체 제어**: 벨트가 꽉 차서 입구까지 아이템이 쌓이면, `TryReceiveItem`이 `false`를 반환하여 추가 투입(Source/Inserter)을 자동으로 차단함.
     
 - **[Update] Auto-Tiling**:
     
@@ -127,6 +135,10 @@ JSON
 ### 4.2. 투입기 (Inserter) - [Update] 상세 FSM
 
 - **구조**: Source Grid(집는 곳) / Destination Grid(놓는 곳).
+
+- **[New] 집기 위치 정교화 (Pick-up Refinement)**:
+    
+    - **위치 조건**: 벨트에서 아이템을 집을 때, 아이템이 벨트의 중간 지점(`progress` >= 0.5f) 이상 도달해야만 집을 수 있도록 제한하여 시각적 어색함을 해소함.
     
 - **FSM (상태 머신)**:
     

@@ -9,8 +9,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1313396724542882717}
-  - component: {fileID: 1222377539034140753}
-  - component: {fileID: -4881480967448929804}
+  - component: {fileID: 6352629369719335189}
+  - component: {fileID: 1756036797822178464}
   m_Layer: 0
   m_Name: Belt
   m_TagString: Untagged
@@ -32,9 +32,39 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 5802851741176367413}
+  - {fileID: 1165255943286616007}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!212 &1222377539034140753
+--- !u!114 &6352629369719335189
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2495484915201959287}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3f4b3718103c5b842bb9dd37d7d561d8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Belt
+  gridPosition: {x: 0, y: 0}
+  size: {x: 1, y: 1}
+  direction: 0
+  visualRotationOffset: 0
+  speed: 1
+  itemSize: 0.6
+  spriteRenderer: {fileID: 1756036797822178464}
+  beltSprites:
+  - {fileID: 3620939337679149745, guid: 8c8a0bcb45f22de4eb1da5febc1e44c3, type: 3}
+  - {fileID: -5915045644980191239, guid: 4d9f3d824faac01459d2c7b0e2ea0577, type: 3}
+  - {fileID: -5635095501608823606, guid: 46d969f11e8da894abb06bd73874f860, type: 3}
+  - {fileID: -2531617945567451265, guid: 93ef95ab741cdfc4db8c5bb40133f065, type: 3}
+  - {fileID: -3801712846347672005, guid: 1755a29f4d77d0342a81bf7b19170152, type: 3}
+  - {fileID: 7753630584128706680, guid: 17e3d7a5b8a166245ae61138d7aa2233, type: 3}
+  - {fileID: 4139968916289534735, guid: 818f678631d96c446a2c567a439938be, type: 3}
+  - {fileID: -3175784470926091379, guid: 0e29b8568ac29904f9cb85469826842c, type: 3}
+  - {fileID: 7753630584128706680, guid: 17e3d7a5b8a166245ae61138d7aa2233, type: 3}
+--- !u!212 &1756036797822178464
 SpriteRenderer:
   serializedVersion: 2
   m_ObjectHideFlags: 0
@@ -81,9 +111,9 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: -5
+  m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: -6771482941915710753, guid: 184cfdccbef768e498140942867d9eb0, type: 3}
+  m_Sprite: {fileID: 3620939337679149745, guid: 8c8a0bcb45f22de4eb1da5febc1e44c3, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -93,26 +123,37 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
---- !u!114 &-4881480967448929804
-MonoBehaviour:
+--- !u!1 &3128642106268320037
+GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2495484915201959287}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3f4b3718103c5b842bb9dd37d7d561d8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Belt
-  gridPosition: {x: 0, y: 0}
-  size: {x: 1, y: 1}
-  direction: 0
-  speed: 1
-  spriteRenderer: {fileID: 0}
-  beltSprites:
-  - {fileID: -6771482941915710753, guid: 184cfdccbef768e498140942867d9eb0, type: 3}
-  - {fileID: -8292416050315230980, guid: ee818f57a40d76d418b8d73bfc8c875b, type: 3}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1165255943286616007}
+  m_Layer: 0
+  m_Name: Visual
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1165255943286616007
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3128642106268320037}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0.7071068, w: 0.7071068}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1313396724542882717}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 90}
 --- !u!1 &4926873832791757862
 GameObject:
   m_ObjectHideFlags: 0

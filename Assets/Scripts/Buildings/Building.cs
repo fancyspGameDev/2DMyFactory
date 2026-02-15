@@ -6,6 +6,9 @@ public abstract class Building : MonoBehaviour
     public Vector2Int gridPosition;
     public Vector2Int size = Vector2Int.one;
     public Direction direction = Direction.North;
+    
+    [Header("Visual Settings")]
+    public float visualRotationOffset = 0f; // Offset for sprite rotation correction
 
     /// <summary>
     /// Called by the TickManager for game logic updates.

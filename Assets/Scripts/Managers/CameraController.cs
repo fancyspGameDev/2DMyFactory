@@ -18,6 +18,9 @@ public class CameraController : MonoBehaviour
     void Start()
     {
         cam = GetComponent<Camera>();
+        
+        // Center the camera on the map (assuming 50x50 grid)
+        transform.position = new Vector3(25f, 25f, -10f);
     }
 
   

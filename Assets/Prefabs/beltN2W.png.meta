@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: ee818f57a40d76d418b8d73bfc8c875b
+guid: 11bad934412bb6947b18187288db8571
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -8292416050315230980
-    second: beltCorner_0
+      213: 234615637655976444
+    second: beltN2W_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: beltCorner_0
+      name: beltN2W_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 64
-        height: 64
+        width: 63
+        height: 63
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: cf0863f898b6bec80800000000000000
-      internalID: -8292416050315230980
+      spriteID: cf97c3deda5814300800000000000000
+      internalID: 234615637655976444
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      beltCorner_0: -8292416050315230980
+      beltN2W_0: 234615637655976444
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

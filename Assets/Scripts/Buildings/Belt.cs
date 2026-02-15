@@ -14,13 +14,17 @@ public class Belt : Building, IItemReceiver, IItemSource
 
     [Header("Belt Settings")]
     [SerializeField] private float speed = 1f; // Tiles per second
+    [SerializeField] private float itemSize = 0.6f; // Min distance between items
 
     [Header("Belt State")]
     public List<ItemOnBelt> items = new List<ItemOnBelt>();
 
     [Header("Visuals")]
     [SerializeField] private SpriteRenderer spriteRenderer;
-    [SerializeField] private Sprite[] beltSprites; // 0: Vertical, 1: Horizontal, 2: Corner... (Simplified)
+    [SerializeField] private Sprite[] beltSprites;
+
+    private int currentSpriteIndex = 0;
+    private bool currentIsCorner = false;
 
     private void Update()
     {
@@ -31,62 +35,53 @@ public class Belt : Building, IItemReceiver, IItemSource
     {
         foreach (var item in items)
         {
-            // 1. Instantiate visual if missing
             if (item.visual == null)
             {
                 item.visual = new GameObject($"{item.data.displayName}_Visual");
                 item.visual.transform.SetParent(transform);
-                item.visual.transform.localScale = Vector3.one * 0.5f; // Scale down a bit
+                item.visual.transform.localScale = Vector3.one * 0.5f;
 
                 var sr = item.visual.AddComponent<SpriteRenderer>();
                 sr.sprite = item.data.icon;
-                sr.sortingOrder = 5; // Higher than belt (assuming belt is 0 or low)
+                sr.sortingOrder = 5;
             }
 
-            // 2. Update Position
-            // Calculate local position based on progress and belt direction logic
-            // Assuming straight line from center to output edge?
-            // Actually, Belt usually goes from Edge to Edge.
-            // Progress 0.0 = Start Edge (Input side center?), 1.0 = End Edge (Output side center)
-            // But Belt.cs logic is simplified.
+            Vector3 startPos;
+            Vector3 endPos;
+
+            if (currentIsCorner)
+            {
+                // Mapping based on spriteIndex 1-8
+                // 1: N->E, 2: E->N, 3: E->S, 4: S->E, 5: S->W, 6: W->S, 7: W->N, 8: N->W
+                switch (currentSpriteIndex)
+                {
+                    case 1: startPos = new Vector3(0, 0.5f, 0); endPos = new Vector3(0.5f, 0, 0); break;
+                    case 2: startPos = new Vector3(0.5f, 0, 0); endPos = new Vector3(0, 0.5f, 0); break;
+                    case 3: startPos = new Vector3(0.5f, 0, 0); endPos = new Vector3(0, -0.5f, 0); break;
+                    case 4: startPos = new Vector3(0, -0.5f, 0); endPos = new Vector3(0.5f, 0, 0); break;
+                    case 5: startPos = new Vector3(0, -0.5f, 0); endPos = new Vector3(-0.5f, 0, 0); break;
+                    case 6: startPos = new Vector3(-0.5f, 0, 0); endPos = new Vector3(0, -0.5f, 0); break;
+                    case 7: startPos = new Vector3(-0.5f, 0, 0); endPos = new Vector3(0, 0.5f, 0); break;
+                    case 8: startPos = new Vector3(0, 0.5f, 0); endPos = new Vector3(-0.5f, 0, 0); break;
+                    default: startPos = new Vector3(0, -0.5f, 0); endPos = new Vector3(0, 0.5f, 0); break;
+                }
+            }
+            else
+            {
+                // Straight: Always move from back edge to front edge relative to rotation
+                // Since parent is rotated, local -0.5 to 0.5 on Y axis is correct.
+                startPos = new Vector3(0, -0.5f, 0);
+                endPos = new Vector3(0, 0.5f, 0);
+            }
             
-            // Vector calculation:
-            // Center is (0,0) local.
-            // If straight:
-            // Start local pos: (0, -0.5) for North direction (Up) ??
-            // Let's rely on direction. 
-            // If direction is North (Up), movement is along +Y.
-            // Local Y goes from -0.5 to 0.5?
-            
-            // Standard generic way:
-            // Start point is "Opposite of Direction" * 0.5
-            // End point is "Direction" * 0.5
-            // Actually, (0,0) is center of tile.
-            // Local moves from -0.5 * DirVector to +0.5 * DirVector?
-            // Let's assume progress 0 is Center (0,0) and 1 is Edge?
-            // Logic says "moves along belt".
-            // Let's use: Start = (0,0), End = DirectionVector (World 1 unit).
-            // But we are in Local Space.
-            // Belt rotation handles the visual rotation of the *Belt Sprite*.
-            // BUT, item movement needs to match that.
-            
-            // Simplest implementation:
-            // Move from (0,0) to (0,1) relative to rotation?
-            // Belt rotation is set in UpdateSprite: transform.rotation = ...
-            // If belt is rotated, "Up" local is the direction.
-            // So we just move along Local Y?
-            // If rotation is correct, Local Y is the forward direction.
-            // Let's try: Local Pos = Vector3.up * (item.progress - 0.5f);
-            // Range: -0.5 to 0.5 along Y axis.
-            
-            item.visual.transform.localPosition = Vector3.up * (item.progress - 0.5f);
+            item.visual.transform.localPosition = Vector3.Lerp(startPos, endPos, item.progress);
         }
     }
 
     public override void Place(Vector2Int pos)
     {
         base.Place(pos);
-        // Force update neighbors to refresh their sprites too
+        Debug.Log($"[Belt] Placing at {pos}, Direction: {direction}");
         UpdateSprite();
         UpdateNeighborSprites();
     }
@@ -108,89 +103,79 @@ public class Belt : Building, IItemReceiver, IItemSource
     {
         if (spriteRenderer == null) return;
 
-        // Auto-Tiling Logic
-        // Determine input directions (where items are coming FROM)
         List<Direction> inputs = new List<Direction>();
-        
         Vector2Int[] offsets = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
-        Direction[] dirs = { Direction.North, Direction.South, Direction.West, Direction.East }; // Matching offsets
+        Direction[] dirs = { Direction.North, Direction.South, Direction.West, Direction.East };
 
         for (int i = 0; i < 4; i++)
         {
             Vector2Int neighborPos = gridPosition + offsets[i];
             Building neighbor = GridManager.Instance.GetBuildingAt(neighborPos);
-            
-            // Check if neighbor is a Belt (or potentially other outputters) that points to us
             if (neighbor is Belt beltNeighbor)
             {
-                Vector2Int neighborOutputVector = beltNeighbor.GetVectorForDirection(beltNeighbor.direction);
-                if (neighborPos + neighborOutputVector == gridPosition)
+                if (neighborPos + beltNeighbor.GetVectorForDirection(beltNeighbor.direction) == gridPosition)
                 {
                     inputs.Add(dirs[i]);
                 }
             }
-            // Add checks for Machines outputting to this belt if necessary, 
-            // but usually belts only curve for other belts.
         }
 
-        // Determine Shape
-        // Default to Straight
-        bool isCorner = false;
-        float rotationZ = -90 * (int)direction; // Default rotation based on output direction
+        Direction outputDir = direction;
+        Direction backDir = Opposite(outputDir);
 
-        if (inputs.Count == 1)
+        currentSpriteIndex = 0;
+        currentIsCorner = false;
+
+        if (!inputs.Contains(backDir) && inputs.Count > 0)
         {
-            Direction inputDir = inputs[0];
-            Direction outputDir = direction;
-
-            // Check if orthogonal (Corner)
-            if (inputDir != outputDir && inputDir != Opposite(outputDir))
+            foreach (var inputDir in inputs)
             {
-                isCorner = true;
-                
-                // Determine Corner Rotation
-                // Corner sprite assumed to be "Bottom to Right" (North input, East output) or similar reference.
-                // Let's assume standard "Corner" sprite connects Bottom -> Right (Input South, Output East).
-                
-                // Calculate required rotation. 
-                // We need to map (Input, Output) pair to a rotation.
-                
-                if (outputDir == Direction.North)
+                if ((inputDir == Direction.North && outputDir == Direction.East))
                 {
-                    if (inputDir == Direction.West) rotationZ = 0;     // West -> North (Left -> Up)
-                    if (inputDir == Direction.East) rotationZ = 90;    // East -> North (Right -> Up)
+                    currentSpriteIndex = 1; currentIsCorner = true; break;
                 }
-                else if (outputDir == Direction.East)
+                if ((inputDir == Direction.East && outputDir == Direction.North))
                 {
-                    if (inputDir == Direction.North) rotationZ = -90;  // North -> East (Up -> Right)
-                    if (inputDir == Direction.South) rotationZ = 0;    // South -> East (Down -> Right)
+                    currentSpriteIndex = 2; currentIsCorner = true; break;
                 }
-                else if (outputDir == Direction.South)
+                if ((inputDir == Direction.East && outputDir == Direction.South))
                 {
-                    if (inputDir == Direction.East) rotationZ = 180;   // East -> South (Right -> Down)
-                    if (inputDir == Direction.West) rotationZ = -90;   // West -> South (Left -> Down)
+                    currentSpriteIndex = 3; currentIsCorner = true; break;
                 }
-                else if (outputDir == Direction.West)
+                if ((inputDir == Direction.South && outputDir == Direction.East))
                 {
-                    if (inputDir == Direction.South) rotationZ = 90;   // South -> West (Down -> Left)
-                    if (inputDir == Direction.North) rotationZ = 180;  // North -> West (Up -> Left)
+                    currentSpriteIndex = 4; currentIsCorner = true; break;
+                }
+                if ((inputDir == Direction.South && outputDir == Direction.West))
+                {
+                    currentSpriteIndex = 5; currentIsCorner = true; break;
+                }
+                if ((inputDir == Direction.West && outputDir == Direction.South))
+                {
+                    currentSpriteIndex = 6; currentIsCorner = true; break;
+                }
+                if ((inputDir == Direction.West && outputDir == Direction.North))
+                {
+                    currentSpriteIndex = 7; currentIsCorner = true; break;
+                }
+                if ((inputDir == Direction.North && outputDir == Direction.West))
+                {
+                    currentSpriteIndex = 8; currentIsCorner = true; break;
                 }
             }
         }
 
-        // Apply Sprite and Rotation
-        if (isCorner && beltSprites.Length > 1)
+        string inputLog = string.Join(", ", inputs);
+        Debug.Log($"[Belt at {gridPosition}] Output: {outputDir}, Receiving from: [{inputLog}], isCorner: {currentIsCorner}, SpriteIndex: {currentSpriteIndex}");
+
+        if (currentIsCorner && currentSpriteIndex < beltSprites.Length)
         {
-            spriteRenderer.sprite = beltSprites[1]; // Assume index 1 is Corner
-            // Adjust rotation for corner
-            // Note: The rotation mapping above relies on a specific base sprite orientation.
-            // If the base sprite is "Left -> Up" (West -> North), the angles change.
-            // For now, we apply the calculated Z rotation.
-             transform.rotation = Quaternion.Euler(0, 0, rotationZ);
+            spriteRenderer.sprite = beltSprites[currentSpriteIndex];
+            transform.rotation = Quaternion.identity;
         }
         else
         {
-            if (beltSprites.Length > 0) spriteRenderer.sprite = beltSprites[0]; // Assume index 0 is Straight
+            if (beltSprites.Length > 0) spriteRenderer.sprite = beltSprites[0];
             transform.rotation = Quaternion.Euler(0, 0, -90 * (int)direction);
         }
     }
@@ -205,8 +190,7 @@ public class Belt : Building, IItemReceiver, IItemSource
 
     public override void OnTick()
     {
-        // Item spacing/size. 0.35f ensures good visual separation and stacking behavior.
-        float itemSize = 0.35f; 
+        // moveAmount is speed * tickInterval (0.1s)
         float moveAmount = speed * 0.1f;
 
         // 1. Move and Collide
@@ -218,7 +202,7 @@ public class Belt : Building, IItemReceiver, IItemSource
             float limit = 1.0f;
             if (i > 0)
             {
-                // Cannot move past the item ahead of us minus the spacing
+                // Cannot move past the item ahead of us minus the spacing (itemSize)
                 limit = items[i - 1].progress - itemSize;
             }
 
@@ -279,7 +263,7 @@ public class Belt : Building, IItemReceiver, IItemSource
     public bool TryReceiveItem(ItemStack item)
     {
         // Prevent item collision at the start of the belt
-        if (items.Any(i => i.progress < 0.2f))
+        if (items.Any(i => i.progress < itemSize))
         {
             return false;
         }

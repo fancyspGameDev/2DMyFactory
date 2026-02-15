@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 184cfdccbef768e498140942867d9eb0
+guid: 8c8a0bcb45f22de4eb1da5febc1e44c3
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -6771482941915710753
-    second: belt_0
+      213: 3620939337679149745
+    second: fbelt_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,7 +100,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: belt_0
+      name: fbelt_0
       rect:
         serializedVersion: 2
         x: 0
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: fda3f74242cd602a0800000000000000
-      internalID: -6771482941915710753
+      spriteID: 1ba9a9f9429204230800000000000000
+      internalID: 3620939337679149745
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      belt_0: -6771482941915710753
+      fbelt_0: 3620939337679149745
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

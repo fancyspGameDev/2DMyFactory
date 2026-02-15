@@ -114,11 +114,14 @@ public class UIManager : MonoBehaviour
         }
 
         // 3. Rotation
-        float rotZ = 0;
-        if (currentDirection == Vector2Int.right) rotZ = 0;
-        else if (currentDirection == Vector2Int.down) rotZ = -90;
-        else if (currentDirection == Vector2Int.left) rotZ = 180;
-        else if (currentDirection == Vector2Int.up) rotZ = 90;
+        Direction dir = currentDirection.ToDirection();
+        float rotZ = -90f * (int)dir;
+
+        // Apply visual rotation offset from the prefab
+        if (currentPrefab != null)
+        {
+            rotZ += currentPrefab.visualRotationOffset;
+        }
 
         ghostObject.rotation = Quaternion.Euler(0, 0, rotZ);
     }

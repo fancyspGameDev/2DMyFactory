@@ -74,19 +74,36 @@ public class GridManager : MonoBehaviour
     // Overload for use by GameManager and UIManager with direction
     public Building PlaceBuilding(int x, int y, Building prefab, Vector2Int directionVector)
     {
+        if (prefab == null)
+        {
+            Debug.LogError("GridManager: PlaceBuilding failed because prefab is null.");
+            return null;
+        }
+
         Vector2Int position = new Vector2Int(x, y);
-        if (!IsAreaAvailable(position, prefab.size))
+
+        // Determine direction and rotated size
+        Direction dir = directionVector.ToDirection();
+        Vector2Int rotatedSize = prefab.size;
+        if (dir == Direction.East || dir == Direction.West)
+        {
+            rotatedSize = new Vector2Int(prefab.size.y, prefab.size.x);
+        }
+
+        // Check availability using ROTATED size
+        if (!IsAreaAvailable(position, rotatedSize))
         {
             return null;
         }
 
         Building newBuilding = Instantiate(prefab, new Vector3(position.x, position.y, 0), Quaternion.identity);
-        newBuilding.Place(position);
 
-        // Apply direction
-        Direction dir = directionVector.ToDirection();
+        // Apply direction and update size BEFORE calling Place
         newBuilding.direction = dir;
         newBuilding.transform.rotation = Quaternion.Euler(0, 0, -90 * (int)dir);
+        newBuilding.size = rotatedSize;
+
+        newBuilding.Place(position);
 
         RegisterBuilding(newBuilding, position);
         return newBuilding;

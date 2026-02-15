@@ -80,83 +80,90 @@ public class GameManager : MonoBehaviour
     // ★ [수정됨] Inserter 포함 테스트 레이아웃 생성
     public void GenerateTestLayout()
     {
-        // 프리팹 확인
-        if (buildingPrefabs == null || buildingPrefabs.Length < 5)
-        {
-            Debug.LogError("Building Prefabs에 최소 5개의 건물이 등록되어야 합니다. (0:Belt, 1:Inserter, 2:Source, 3:Sink, 4:Smelter)");
-            return;
-        }
+        if (buildingPrefabs == null || buildingPrefabs.Length < 5) return;
+        GridManager.Instance.ClearGrid();
 
-        // 인덱스 매핑: [0]:Belt, [1]:Inserter, [2]:Source, [3]:Sink, [4]:Smelter
         int idxBelt = 0;
         int idxInserter = 1;
         int idxSource = 2;
         int idxSink = 3;
         int idxSmelter = 4;
 
-        int startX = 20;
-        int startY = 20;
-        int currentX = startX;
-
-        // 배치 시나리오: Source -> Inserter -> Belt (4개) -> Inserter -> Smelter -> Inserter -> Belt (4개) -> Inserter -> Sink
+        // --- Segment 1: Source to Smelter ---
+        // Source -> Inserter -> Belt (W->E) 3개
+        Building src = PlaceTestBuilding(10, 10, idxSource, Vector2Int.right);
+        if (src is Source source) source.itemToProduce = testItemToProduce;
         
-        // 1. Source (입력 창고)
-        Building sourceBuilding = PlaceTestBuilding(currentX, startY, idxSource, Vector2Int.right);
-        if (sourceBuilding is Source source)
+        PlaceTestBuilding(11, 10, idxInserter, Vector2Int.right);
+        for (int i = 0; i < 3; i++)
         {
-            source.itemToProduce = testItemToProduce;
-        }
-        currentX++;
-
-        // 2. Inserter (Source -> Belt Start)
-        PlaceTestBuilding(currentX, startY, idxInserter, Vector2Int.right);
-        currentX++;
-
-        // 3. Belt 4개
-        for (int i = 0; i < 4; i++)
-        {
-            PlaceTestBuilding(currentX, startY, idxBelt, Vector2Int.right);
-            currentX++;
+            PlaceTestBuilding(12 + i, 10, idxBelt, Vector2Int.right);
         }
 
-        // 4. Inserter (Belt End -> Smelter)
-        PlaceTestBuilding(currentX, startY, idxInserter, Vector2Int.right);
-        currentX++;
+        // Belt (E->N) 3개
+        for (int i = 0; i < 3; i++)
+        {
+            PlaceTestBuilding(15, 10 + i, idxBelt, Vector2Int.up);
+        }
 
-        // 5. Smelter (가공)
-        Building smelterBuilding = PlaceTestBuilding(currentX, startY, idxSmelter, Vector2Int.right);
-        if (smelterBuilding is Smelter smelter)
+        // Inserter -> Smelter -> Inserter
+        PlaceTestBuilding(15, 13, idxInserter, Vector2Int.up);
+        Building sml = PlaceTestBuilding(15, 14, idxSmelter, Vector2Int.up);
+        if (sml is Smelter smelter)
         {
             smelter.currentRecipe = testRecipe;
-            trackedSmelter = smelter; // 참조 저장
+            trackedSmelter = smelter;
         }
-        currentX++;
+        PlaceTestBuilding(15, 15, idxInserter, Vector2Int.up);
 
-        // 6. Inserter (Smelter -> Belt Start)
-        PlaceTestBuilding(currentX, startY, idxInserter, Vector2Int.right);
-        currentX++;
-
-        // 7. Belt 4개 (생산물 이동)
-        for (int i = 0; i < 4; i++)
+        // --- Segment 2: Smelter to Sink ---
+        // Belt (S->N) 2개
+        for (int i = 0; i < 2; i++)
         {
-            PlaceTestBuilding(currentX, startY, idxBelt, Vector2Int.right);
-            currentX++;
+            PlaceTestBuilding(15, 16 + i, idxBelt, Vector2Int.up);
         }
 
-        // 8. Inserter (Belt End -> Sink)
-        PlaceTestBuilding(currentX, startY, idxInserter, Vector2Int.right);
-        currentX++;
+        // Belt (W->E) 8개
+        for (int i = 0; i < 8; i++)
+        {
+            PlaceTestBuilding(15 + i, 18, idxBelt, Vector2Int.right);
+        }
 
-        // 9. Sink (소모)
-        PlaceTestBuilding(currentX, startY, idxSink, Vector2Int.right);
+        // Belt (E->S) 3개
+        for (int i = 0; i < 3; i++)
+        {
+            PlaceTestBuilding(23, 18 - i, idxBelt, Vector2Int.down);
+        }
 
-        Debug.Log("확장된 테스트 공장 배치 완료! (Source -> Inserter -> Belt(4) -> Inserter -> Smelter -> Inserter -> Belt(4) -> Inserter -> Sink)");
+        // Belt (S->W) 3개
+        for (int i = 0; i < 3; i++)
+        {
+            PlaceTestBuilding(23 - i, 15, idxBelt, Vector2Int.left);
+        }
+
+        // Inserter -> Sink
+        PlaceTestBuilding(20, 15, idxInserter, Vector2Int.left);
+        PlaceTestBuilding(19, 15, idxSink, Vector2Int.left);
+
+        Debug.Log("Full Production Line Generated: Source -> Belts -> Smelter -> North Belts -> Long East Belts -> South Belts -> West Belts -> Sink.");
     }
 
     // GridManager를 호출하여 건물을 짓는 내부 함수
     private Building PlaceTestBuilding(int x, int y, int prefabIndex, Vector2Int dir)
     {
+        if (prefabIndex < 0 || prefabIndex >= buildingPrefabs.Length)
+        {
+            Debug.LogError($"GameManager: Invalid prefab index {prefabIndex}. Array length is {buildingPrefabs.Length}.");
+            return null;
+        }
+
         Building prefab = buildingPrefabs[prefabIndex];
+        if (prefab == null)
+        {
+            Debug.LogError($"GameManager: Building prefab at index {prefabIndex} is null! Check inspector.");
+            return null;
+        }
+
         return GridManager.Instance.PlaceBuilding(x, y, prefab, dir);
     }
 
